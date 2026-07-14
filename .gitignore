@@ -1,0 +1,9 @@
+# Raw scraped data - regenerate with step1
+data/raw/
+
+# FRED CSVs - download instructions in README
+data/*.csv
+
+# MATLAB autosaves
+*.asv
+*.m~
