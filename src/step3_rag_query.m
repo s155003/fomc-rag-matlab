@@ -3,7 +3,6 @@
 %           (https://github.com/matlab-deep-learning/llms-with-matlab)
 % Set your API key first, e.g.:  setenv("OPENAI_API_KEY", "sk-...")
 
-clear; clc;
 
 query = "What was the Committee's assessment of inflation risks in mid-2022?";
 

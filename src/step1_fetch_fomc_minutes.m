@@ -6,7 +6,6 @@
 % Strategy: scrape the calendar/historical pages, extract links containing
 % "fomcminutes", download each, and save raw HTML into ../data/raw/.
 
-clear; clc;
 
 outDir = fullfile("..", "data", "raw");
 if ~isfolder(outDir), mkdir(outDir); end

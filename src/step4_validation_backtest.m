@@ -11,7 +11,6 @@
 % https://fred.stlouisfed.org/series/DFEDTARU and place it in ../data/,
 % or use the Datafeed Toolbox if you have it.
 
-clear; clc;
 
 conn = postgresql("postgres", getenv("FOMC_DB_PASSWORD"), ...
     DatabaseName="fomc_rag", Server="localhost", PortNumber=5432);
