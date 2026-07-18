@@ -21,16 +21,18 @@ LLM-extracted sentiment vs. actual next-meeting policy moves, 2000–2026:
 | Directional hit rate on actual rate moves | **94.0%** (63/67) |
 
 ## Architecture
-federalreserve.gov ──► step1: scraper ──► raw HTML (210 meetings)
-│
-step2: extract → chunk by paragraph → embed (all-MiniLM-L12-v2, 384-d)
-│
-PostgreSQL + pgvector (HNSW index)
-│
-step3: RAG Q&A ── cosine retrieval + date filtering ──► Claude API
-│
-step4: sentiment scoring ──► backtest vs FRED rate data
 
+```
+federalreserve.gov ──► step1: scraper ──► raw HTML (210 meetings)
+                              │
+              step2: extract → chunk by paragraph → embed (all-MiniLM-L12-v2, 384-d)
+                              │
+                   PostgreSQL + pgvector (HNSW index)
+                              │
+      step3: RAG Q&A ── cosine retrieval + date filtering ──► Claude API
+                              │
+      step4: sentiment scoring ──► backtest vs FRED rate data
+```
 ## A bug worth mentioning: the January problem
 
 The first version of the sentiment scorer fed each meeting's *first 25 chunks* to the
