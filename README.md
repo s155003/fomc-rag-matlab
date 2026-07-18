@@ -1,3 +1,10 @@
+## DISCLAIMER Development notes: AI assistance
+
+The README and the descriptive comments at the top of each source file were
+drafted with the assistance of Anthropic's Claude, consistent with the
+program's [Generative AI Guidelines](https://github.com/mathworks/MATLAB-Simulink-Challenge-Project-Hub/wiki/Generative-AI-Guidelines).
+All content was reviewed and edited by the author. Claude is also a runtime
+component of the system itself (`callClaude.m`).
 # FOMC Minutes Analysis with LLMs (MATLAB RAG Pipeline)
 
 A MATLAB-based retrieval-augmented generation (RAG) system that analyzes 26 years
