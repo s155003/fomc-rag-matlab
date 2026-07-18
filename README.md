@@ -62,8 +62,8 @@ Learning toolboxes), the all-MiniLM-L12-v2 support package, PostgreSQL with
    setenv("FOMC_DB_PASSWORD", "your-postgres-password")
    setenv("ANTHROPIC_API_KEY", "sk-ant-...")
 ```
-4. Run the scripts in order: `step1` (scrape, ~5 min) → `step2` (embed, ~20 min)
-   → `step3` (ask a question) → `step4` (full backtest, ~210 LLM calls)
+4. Run `src/main.m` — it executes the full pipeline (scrape → embed → RAG demo →
+   backtest) with skippable stages. Individual step scripts can also be run directly.
 
 All scripts are re-runnable; completed work is skipped.
 
