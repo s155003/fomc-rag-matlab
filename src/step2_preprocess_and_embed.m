@@ -3,7 +3,6 @@
 %           (install from Add-Ons menu), Database Toolbox, and a running
 %           PostgreSQL instance with the schema from setup_database.sql.
 
-clear; clc;
 
 rawDir = fullfile("..", "data", "raw");
 files  = dir(fullfile(rawDir, "minutes_*.html"));
