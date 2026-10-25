@@ -1,11 +1,11 @@
 %% STEP 1: Download FOMC meeting minutes from federalreserve.gov
-% Minutes from ~1993 onward are published as HTML pages with predictable
-% URLs. Recent years (2021+) also live on the fomccalendars page; older
-% years are under /monetarypolicy/fomchistorical<year>.htm.
+% Minutes are published as HTML pages (and, for two meetings in the current
+% range, PDF only: 2008-06-25 and 2012-10-23). Recent years live on the
+% fomccalendars page; older years under /monetarypolicy/fomchistorical<year>.htm.
 %
-% Strategy: scrape the calendar/historical pages, extract links containing
-% "fomcminutes", download each, and save raw HTML into ../data/raw/.
-
+% Strategy: scrape the calendar/historical pages, extract minutes links in
+% both HTML and PDF form, download each, and save into ../data/raw/.
+% A per-year completeness report at the end makes missing meetings loud.
 
 outDir = fullfile("..", "data", "raw");
 if ~isfolder(outDir), mkdir(outDir); end
@@ -30,11 +30,13 @@ for y = startYear:endYear
             continue;   % page doesn't exist for this year, skip
         end
 
-        % Pull every href that looks like a minutes page for year y
-        % (two URL formats: modern "fomcminutesYYYYMMDD.htm" and
-        %  pre-2008 "/fomc/minutes/YYYYMMDD.htm")
+        % Minutes links come in three shapes:
+        %   modern HTML:  .../fomcminutesYYYYMMDD.htm
+        %   modern PDF:   .../fomcminutesYYYYMMDD.pdf  (only format for
+        %                 2008-06-25 and 2012-10-23)
+        %   pre-2008:     /fomc/minutes/YYYYMMDD.htm
         newStyle = regexp(html, ...
-            'href="([^"]*fomcminutes\d{8}[^"]*\.htm)"', 'tokens');
+            'href="([^"]*fomcminutes\d{8}[^"]*\.(?:htm|pdf))"', 'tokens');
         oldStyle = regexp(html, ...
             'href="([^"]*/fomc/minutes/\d{8}\.htm)"', 'tokens');
         links = string([[newStyle{:}], [oldStyle{:}]]');
@@ -49,28 +51,57 @@ for y = startYear:endYear
 end
 
 allLinks = unique(allLinks);
-fprintf("Found %d minutes documents.\n", numel(allLinks));
+
+% If a meeting is available as both .htm and .pdf, keep only the .htm.
+dateOf = @(s) regexp(s, '(?:fomcminutes|minutes/)(\d{8})', 'tokens', 'once');
+dates8 = strings(numel(allLinks), 1);
+for i = 1:numel(allLinks)
+    t = dateOf(allLinks(i)); dates8(i) = t{1};
+end
+isPdf = endsWith(allLinks, ".pdf");
+drop  = false(size(allLinks));
+for i = 1:numel(allLinks)
+    if isPdf(i) && any(dates8 == dates8(i) & ~isPdf)
+        drop(i) = true;
+    end
+end
+allLinks = allLinks(~drop); dates8 = dates8(~drop); isPdf = isPdf(~drop);
+
+fprintf("Found %d minutes documents (%d html, %d pdf).\n", ...
+    numel(allLinks), sum(~isPdf), sum(isPdf));
 
 %% Download each document
 for i = 1:numel(allLinks)
     link = allLinks(i);
     if ~startsWith(link, "http"), link = baseURL + link; end
 
-    % Extract the yyyymmdd date from the filename for naming
-    tok  = regexp(link, '(?:fomcminutes|minutes/)(\d{8})', 'tokens', 'once');
-    name = "minutes_" + tok{1} + ".html";
-    dest = fullfile(outDir, name);
+    if isPdf(i), ext = ".pdf"; else, ext = ".html"; end
+    dest = fullfile(outDir, "minutes_" + dates8(i) + ext);
 
     if isfile(dest), continue; end       % already downloaded, skip
 
     try
         websave(dest, link);
-        fprintf("[%3d/%3d] saved %s\n", i, numel(allLinks), name);
+        fprintf("[%3d/%3d] saved minutes_%s%s\n", i, numel(allLinks), dates8(i), ext);
     catch err
-        warning("Failed %s: %s", link, err.message);
+        warning("step1:download", "Failed %s: %s", link, err.message);
     end
 
     pause(0.5);   % be polite to the Fed's servers
 end
 
-fprintf("Done. Raw HTML in %s\n", outDir);
+%% Completeness report: the FOMC holds 8 scheduled meetings per year.
+% Fewer than 7 files for a completed year almost certainly means a
+% missed format or a failed download - make that loud, not silent.
+onDisk = [dir(fullfile(outDir, "minutes_*.html")); dir(fullfile(outDir, "minutes_*.pdf"))];
+yrs = str2double(extractBetween(string({onDisk.name}'), 9, 12));   % minutes_YYYY...
+counts = groupcounts(yrs);
+uy = unique(yrs);
+for k = 1:numel(uy)
+    if uy(k) < year(datetime("today")) && counts(k) < 7
+        warning("step1:incomplete", ...
+            "Year %d has only %d minutes files - check for missed meetings.", ...
+            uy(k), counts(k));
+    end
+end
+fprintf("Done. %d documents on disk in %s\n", numel(onDisk), outDir);

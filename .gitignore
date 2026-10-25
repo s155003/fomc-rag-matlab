@@ -7,3 +7,5 @@ data/*.csv
 # MATLAB autosaves
 *.asv
 *.m~
+*.asv
+FIXES.md
